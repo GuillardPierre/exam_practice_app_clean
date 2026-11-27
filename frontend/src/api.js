@@ -17,9 +17,7 @@ api.interceptors.response.use(
   (error) => {
     const url = error.config?.url || "";
     const isAuthCheck =
-      url.includes("/auth/login") ||
-      url.includes("/auth/register") ||
-      url.includes("/auth/me");
+      url.includes("/auth/login") || url.includes("/auth/register") || url.includes("/auth/me");
 
     if (error.response?.status === 401 && !isAuthCheck && onUnauthorized) {
       onUnauthorized();

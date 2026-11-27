@@ -23,9 +23,7 @@ const TaskForm = ({ addTask }) => {
       addTask(res.data);
       setTitle("");
     } catch (err) {
-      setError(
-        err.response?.data?.msg || "Impossible d'ajouter la tâche."
-      );
+      setError(err.response?.data?.msg || "Impossible d'ajouter la tâche.");
     } finally {
       setIsSubmitting(false);
     }
@@ -50,12 +48,7 @@ const TaskForm = ({ addTask }) => {
           {error}
         </p>
       )}
-      <button
-        type="submit"
-        className="btn"
-        disabled={isSubmitting}
-        style={{ marginTop: "10px" }}
-      >
+      <button type="submit" className="btn" disabled={isSubmitting} style={{ marginTop: "10px" }}>
         {isSubmitting ? "Ajout en cours..." : "Ajouter Tâche"}
       </button>
     </form>

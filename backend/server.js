@@ -16,12 +16,15 @@ if (process.env.JWT_SECRET.length < 32) {
 }
 
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
+const debug = require('debug')('app:server');
 const connectDB = require('./config/db');
+const logger = require('./config/logger');
 
 const app = express();
 
@@ -52,6 +55,33 @@ app.use(express.json({ limit: '10kb' }));
 // Empêche les injections d'opérateurs MongoDB ($gt, $ne...) dans les requêtes
 app.use(mongoSanitize());
 app.use(cookieParser());
+
+app.use((req, res, next) => {
+  const startTime = Date.now();
+  res.on('finish', () => {
+    logger.info('Requête HTTP', {
+      method: req.method,
+      path: req.originalUrl,
+      status: res.statusCode,
+      durationMs: Date.now() - startTime,
+      ip: req.ip,
+    });
+  });
+  next();
+});
+
+// Endpoint de supervision placé avant le rate limiting
+app.get('/api/health', (req, res) => {
+  const isDbConnected = mongoose.connection.readyState === 1;
+  const statusCode = isDbConnected ? 200 : 503;
+
+  return res.status(statusCode).json({
+    status: isDbConnected ? 'ok' : 'degraded',
+    database: isDbConnected ? 'connected' : 'disconnected',
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+  });
+});
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -100,7 +130,11 @@ app.use((err, req, res, next) => {
     return res.status(409).json({ msg: 'Cette ressource existe déjà.' });
   }
 
-  console.error(err.stack || err.message);
+  logger.error('Erreur serveur non gérée', {
+    message: err.message,
+    stack: err.stack,
+    path: req.originalUrl,
+  });
   return res.status(500).json({ msg: 'Erreur interne du serveur.' });
 });
 
@@ -108,7 +142,8 @@ const PORT = process.env.PORT || 5000;
 
 async function startServer() {
   await connectDB();
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  debug('Mode debug actif sur le port %d', PORT);
+  app.listen(PORT, () => logger.info(`Serveur démarré sur le port ${PORT}`));
 }
 
 if (require.main === module) {

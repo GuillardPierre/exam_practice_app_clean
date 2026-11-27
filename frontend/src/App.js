@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Tasks from "./pages/Tasks";
@@ -61,36 +56,22 @@ function App() {
           <Routes>
             <Route
               path="/"
-              element={
-                <Navigate to={isAuthenticated ? "/tasks" : "/login"} replace />
-              }
+              element={<Navigate to={isAuthenticated ? "/tasks" : "/login"} replace />}
             />
             <Route
               path="/login"
               element={
-                isAuthenticated ? (
-                  <Navigate to="/tasks" replace />
-                ) : (
-                  <Login onLogin={handleLogin} />
-                )
+                isAuthenticated ? <Navigate to="/tasks" replace /> : <Login onLogin={handleLogin} />
               }
             />
             <Route
               path="/register"
-              element={
-                isAuthenticated ? (
-                  <Navigate to="/tasks" replace />
-                ) : (
-                  <Register />
-                )
-              }
+              element={isAuthenticated ? <Navigate to="/tasks" replace /> : <Register />}
             />
             <Route path="/tasks" element={renderProtectedTasks()} />
             <Route
               path="*"
-              element={
-                <Navigate to={isAuthenticated ? "/tasks" : "/login"} replace />
-              }
+              element={<Navigate to={isAuthenticated ? "/tasks" : "/login"} replace />}
             />
           </Routes>
         </main>

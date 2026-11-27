@@ -31,9 +31,7 @@ const Login = ({ onLogin }) => {
       if (onLogin) onLogin();
       navigate("/tasks", { replace: true });
     } catch (err) {
-      setError(
-        err.response?.data?.msg || "Échec de la connexion. Veuillez réessayer."
-      );
+      setError(err.response?.data?.msg || "Échec de la connexion. Veuillez réessayer.");
     } finally {
       setIsSubmitting(false);
     }

@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const debug = require('debug')('app:tasks');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Task = require('../models/Task');
@@ -10,6 +11,7 @@ const { sanitizeTaskInput, createTaskSchema, updateTaskSchema } = require('../va
 router.get('/', auth, async (req, res, next) => {
   try {
     const tasks = await Task.find({ user: req.user.id }).sort({ createdAt: -1 });
+    debug('Récupération de %d tâche(s) pour utilisateur %s', tasks.length, req.user.id);
     return res.json(tasks);
   } catch (err) {
     return next(err);
@@ -33,6 +35,7 @@ router.post('/', auth, async (req, res, next) => {
     });
 
     const task = await newTask.save();
+    debug('Tâche créée (%s) pour utilisateur %s', task.id, req.user.id);
     return res.status(201).json(task);
   } catch (err) {
     return next(err);
@@ -70,6 +73,7 @@ router.put('/:id', auth, async (req, res, next) => {
       return res.status(404).json({ msg: 'Tâche introuvable.' });
     }
 
+    debug('Tâche mise à jour (%s) pour utilisateur %s', task.id, req.user.id);
     return res.json(task);
   } catch (err) {
     return next(err);
@@ -93,6 +97,7 @@ router.delete('/:id', auth, async (req, res, next) => {
       return res.status(404).json({ msg: 'Tâche introuvable.' });
     }
 
+    debug('Tâche supprimée (%s) pour utilisateur %s', req.params.id, req.user.id);
     return res.json({ msg: 'Tâche supprimée.' });
   } catch (err) {
     return next(err);

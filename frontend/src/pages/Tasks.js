@@ -20,9 +20,7 @@ const Tasks = () => {
           navigate("/login");
           return;
         }
-        setError(
-          err.response?.data?.msg || "Impossible de charger vos tâches."
-        );
+        setError(err.response?.data?.msg || "Impossible de charger vos tâches.");
       } finally {
         setLoading(false);
       }
@@ -41,13 +39,9 @@ const Tasks = () => {
       const res = await api.put(`/tasks/${task._id}`, {
         isCompleted: !task.isCompleted,
       });
-      setTasks((prevTasks) =>
-        prevTasks.map((item) => (item._id === task._id ? res.data : item))
-      );
+      setTasks((prevTasks) => prevTasks.map((item) => (item._id === task._id ? res.data : item)));
     } catch (err) {
-      setError(
-        err.response?.data?.msg || "Impossible de mettre à jour la tâche."
-      );
+      setError(err.response?.data?.msg || "Impossible de mettre à jour la tâche.");
     }
   };
 
@@ -57,9 +51,7 @@ const Tasks = () => {
       await api.delete(`/tasks/${id}`);
       setTasks((prevTasks) => prevTasks.filter((task) => task._id !== id));
     } catch (err) {
-      setError(
-        err.response?.data?.msg || "Impossible de supprimer la tâche."
-      );
+      setError(err.response?.data?.msg || "Impossible de supprimer la tâche.");
     }
   };
 
@@ -81,10 +73,7 @@ const Tasks = () => {
       ) : (
         <ul className="task-list">
           {tasks.map((task) => (
-            <li
-              key={task._id}
-              className={`task-item ${task.isCompleted ? "completed" : ""}`}
-            >
+            <li key={task._id} className={`task-item ${task.isCompleted ? "completed" : ""}`}>
               <label className="task-content">
                 <input
                   type="checkbox"

@@ -35,9 +35,7 @@ const Register = () => {
         state: { success: "Compte créé avec succès. Vous pouvez vous connecter." },
       });
     } catch (err) {
-      setError(
-        err.response?.data?.msg || "Impossible de créer le compte."
-      );
+      setError(err.response?.data?.msg || "Impossible de créer le compte.");
     } finally {
       setIsSubmitting(false);
     }

@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const debug = require('debug')('app:auth');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+const logger = require('../config/logger');
 const { registerSchema, loginSchema } = require('../validators/schemas');
 
 function getCookieOptions() {
@@ -37,6 +39,8 @@ router.post('/register', async (req, res, next) => {
     user.password = await bcrypt.hash(password, salt);
 
     await user.save();
+    logger.info('Nouvel utilisateur inscrit', { username: user.username });
+    debug('Utilisateur créé : %s', user.username);
 
     const payload = { user: { id: user.id } };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
@@ -66,11 +70,13 @@ router.post('/login', async (req, res, next) => {
   try {
     const user = await User.findOne({ username }).select('+password');
     if (!user) {
+      logger.warn('Tentative de connexion échouée', { username, ip: req.ip });
       return res.status(401).json({ msg: 'Identifiants invalides.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      logger.warn('Tentative de connexion échouée', { username, ip: req.ip });
       return res.status(401).json({ msg: 'Identifiants invalides.' });
     }
 
@@ -80,6 +86,8 @@ router.post('/login', async (req, res, next) => {
       algorithm: 'HS256',
     });
 
+    logger.info('Connexion réussie', { username: user.username });
+    debug('Session ouverte pour : %s', user.username);
     res.cookie('token', token, getCookieOptions());
     return res.json({
       user: { id: user.id, username: user.username },
@@ -92,6 +100,7 @@ router.post('/login', async (req, res, next) => {
 // @route   POST api/auth/logout
 // @desc    Déconnecter l'utilisateur en supprimant le cookie de session
 router.post('/logout', (req, res) => {
+  debug('Déconnexion demandée');
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
