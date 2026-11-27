@@ -15,7 +15,7 @@ services:
       - key: MONGO_URI
         sync: false
       - key: CLIENT_URL
-        sync: false
+        value: https://exam-practice-frontend-kelt.onrender.com
 
   - type: web
     name: exam-practice-frontend
@@ -31,7 +31,7 @@ services:
     routes:
       - type: rewrite
         source: /api/*
-        destination: https://exam-practice-backend.onrender.com/api/*
+        destination: https://exam-practice-backend-1h2z.onrender.com/api/*
       - type: rewrite
         source: /*
         destination: /index.html
