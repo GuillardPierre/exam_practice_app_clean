@@ -6,8 +6,10 @@ const auth = require('../middleware/auth');
 const Task = require('../models/Task');
 const { sanitizeTaskInput, createTaskSchema, updateTaskSchema } = require('../validators/schemas');
 
-// @route   GET api/tasks
-// @desc    Récupérer toutes les tâches de l'utilisateur connecté
+/**
+ * GET /api/tasks
+ * Retourne la liste des tâches de l'utilisateur connecté, de la plus récente à la plus ancienne.
+ */
 router.get('/', auth, async (req, res, next) => {
   try {
     const tasks = await Task.find({ user: req.user.id }).sort({ createdAt: -1 });
@@ -18,8 +20,10 @@ router.get('/', auth, async (req, res, next) => {
   }
 });
 
-// @route   POST api/tasks
-// @desc    Créer une nouvelle tâche
+/**
+ * POST /api/tasks
+ * Crée une nouvelle tâche après nettoyage HTML et validation des champs.
+ */
 router.post('/', auth, async (req, res, next) => {
   const cleanedBody = sanitizeTaskInput(req.body);
   const { error, value } = createTaskSchema.validate(cleanedBody);
@@ -42,8 +46,10 @@ router.post('/', auth, async (req, res, next) => {
   }
 });
 
-// @route   PUT api/tasks/:id
-// @desc    Mettre à jour une tâche appartenant à l'utilisateur connecté
+/**
+ * PUT /api/tasks/:id
+ * Met à jour une tâche existante si elle appartient à l'utilisateur connecté.
+ */
 router.put('/:id', auth, async (req, res, next) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ msg: 'Identifiant de tâche invalide.' });
@@ -62,7 +68,7 @@ router.put('/:id', auth, async (req, res, next) => {
   if (isCompleted !== undefined) updatedFields.isCompleted = isCompleted;
 
   try {
-    // Filtre par utilisateur pour empêcher la modification d'une tâche appartenant à un autre compte (IDOR)
+    // On filtre sur user pour empêcher un utilisateur de modifier la tâche d'un autre compte (IDOR)
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id },
       { $set: updatedFields },
@@ -80,8 +86,10 @@ router.put('/:id', auth, async (req, res, next) => {
   }
 });
 
-// @route   DELETE api/tasks/:id
-// @desc    Supprimer une tâche appartenant à l'utilisateur connecté
+/**
+ * DELETE /api/tasks/:id
+ * Supprime une tâche si elle appartient à l'utilisateur connecté.
+ */
 router.delete('/:id', auth, async (req, res, next) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return res.status(400).json({ msg: 'Identifiant de tâche invalide.' });

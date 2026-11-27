@@ -1,7 +1,7 @@
 const Joi = require('joi');
 const sanitizeHtml = require('sanitize-html');
 
-// Supprime les balises HTML et scripts pour prévenir les failles XSS stockées
+// Supprime les balises HTML et scripts pour éviter les failles XSS
 function cleanText(text) {
   if (typeof text !== 'string') return text;
   return sanitizeHtml(text, { allowedTags: [], allowedAttributes: {} }).trim();
