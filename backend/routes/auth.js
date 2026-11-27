@@ -8,6 +8,9 @@ const auth = require('../middleware/auth');
 const logger = require('../config/logger');
 const { registerSchema, loginSchema } = require('../validators/schemas');
 
+/**
+ * Options du cookie HttpOnly utilisé pour transporter le jeton JWT.
+ */
 function getCookieOptions() {
   return {
     httpOnly: true,
@@ -17,8 +20,7 @@ function getCookieOptions() {
   };
 }
 
-// @route   POST api/auth/register
-// @desc    Inscrire un nouvel utilisateur et poser le cookie de session
+// POST /api/auth/register - Inscription et création du cookie de session
 router.post('/register', async (req, res, next) => {
   const { error, value } = registerSchema.validate(req.body);
   if (error) {
@@ -57,8 +59,7 @@ router.post('/register', async (req, res, next) => {
   }
 });
 
-// @route   POST api/auth/login
-// @desc    Authentifier un utilisateur et poser le cookie de session
+// POST /api/auth/login - Connexion et ouverture de session
 router.post('/login', async (req, res, next) => {
   const { error, value } = loginSchema.validate(req.body);
   if (error) {
@@ -97,8 +98,7 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
-// @route   POST api/auth/logout
-// @desc    Déconnecter l'utilisateur en supprimant le cookie de session
+// POST /api/auth/logout - Suppression du cookie de session
 router.post('/logout', (req, res) => {
   debug('Déconnexion demandée');
   res.clearCookie('token', {
@@ -109,8 +109,7 @@ router.post('/logout', (req, res) => {
   return res.json({ msg: 'Déconnexion réussie.' });
 });
 
-// @route   GET api/auth/me
-// @desc    Récupérer l'utilisateur actuellement authentifié
+// GET /api/auth/me - Vérifie la session en cours
 router.get('/me', auth, async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).select('username');

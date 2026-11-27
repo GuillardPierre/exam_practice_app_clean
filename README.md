@@ -38,6 +38,30 @@ npm start
 # L'application s'ouvrira sur http://localhost:3000
 ```
 
+### c. Lancement avec Docker
+
+```bash
+# Copiez le fichier d'environnement et renseignez votre JWT_SECRET (>= 32 caractères)
+cp .env.example .env
+
+# Démarrez MongoDB, le backend et le frontend
+docker compose up -d --build
+# Frontend sur http://localhost:3000, API sur http://localhost:5000 (/api/health)
+```
+
+Pour lancer aussi Uptime Kuma (`http://localhost:3001`) :
+
+```bash
+docker compose --profile monitoring up -d
+```
+
+Commandes utiles :
+- Backend (`cd backend`) : `npm run dev:debug`, `npm test`, `npm run lint`, `npm run format:check`
+- Frontend (`cd frontend`) : `npm test`, `npm run build`, `npm run lint`, `npm run format:check`
+- Déploiement local scripté : `./deploy.sh`
+
+Voir aussi [CHANGELOG.md](./CHANGELOG.md) et [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
+
 ---
 
 ## 2. Mission pour les Étudiants

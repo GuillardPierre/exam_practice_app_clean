@@ -1,7 +1,10 @@
 const jwt = require('jsonwebtoken');
 
+/**
+ * Vérifie le JWT de l'utilisateur (cookie HttpOnly en priorité, sinon en-tête Authorization ou x-auth-token)
+ * et place l'identifiant décodé dans req.user.
+ */
 module.exports = function (req, res, next) {
-  // Priorité au cookie HttpOnly, avec repli sur les en-têtes pour les clients API
   let token = req.cookies && req.cookies.token;
 
   if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
@@ -26,7 +29,7 @@ module.exports = function (req, res, next) {
     }
 
     req.user = decoded.user;
-    next();
+    return next();
   } catch {
     return res.status(401).json({ msg: 'Jeton invalide ou expiré.' });
   }

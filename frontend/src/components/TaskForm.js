@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import api from "../api";
 
+/**
+ * Formulaire d'ajout de tâche.
+ * Valide que le titre n'est pas vide puis appelle addTask avec la tâche créée.
+ */
 const TaskForm = ({ addTask }) => {
   const [title, setTitle] = useState("");
   const [error, setError] = useState("");

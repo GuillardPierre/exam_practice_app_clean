@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import TaskForm from "../components/TaskForm";
 
+/**
+ * Page principale des tâches.
+ * Charge les tâches de l'utilisateur et permet d'en ajouter, cocher ou supprimer.
+ */
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
