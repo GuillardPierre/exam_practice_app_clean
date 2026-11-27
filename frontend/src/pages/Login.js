@@ -10,8 +10,7 @@ const Login = ({ onLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.post("/auth/login", { username, password });
-      localStorage.setItem("token", res.data.token);
+      await api.post("/auth/login", { username, password });
       if (onLogin) onLogin();
       navigate("/tasks");
     } catch (err) {

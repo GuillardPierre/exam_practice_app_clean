@@ -3,10 +3,20 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const auth = require('../middleware/auth');
 const { registerSchema, loginSchema } = require('../validators/schemas');
 
+function getCookieOptions() {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 1000,
+  };
+}
+
 // @route   POST api/auth/register
-// @desc    Inscrire un nouvel utilisateur
+// @desc    Inscrire un nouvel utilisateur et poser le cookie de session
 router.post('/register', async (req, res, next) => {
   const { error, value } = registerSchema.validate(req.body);
   if (error) {
@@ -34,14 +44,17 @@ router.post('/register', async (req, res, next) => {
       algorithm: 'HS256',
     });
 
-    return res.status(201).json({ token });
+    res.cookie('token', token, getCookieOptions());
+    return res.status(201).json({
+      user: { id: user.id, username: user.username },
+    });
   } catch (err) {
     return next(err);
   }
 });
 
 // @route   POST api/auth/login
-// @desc    Authentifier un utilisateur et retourner son jeton
+// @desc    Authentifier un utilisateur et poser le cookie de session
 router.post('/login', async (req, res, next) => {
   const { error, value } = loginSchema.validate(req.body);
   if (error) {
@@ -67,7 +80,38 @@ router.post('/login', async (req, res, next) => {
       algorithm: 'HS256',
     });
 
-    return res.json({ token });
+    res.cookie('token', token, getCookieOptions());
+    return res.json({
+      user: { id: user.id, username: user.username },
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+// @route   POST api/auth/logout
+// @desc    Déconnecter l'utilisateur en supprimant le cookie de session
+router.post('/logout', (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  });
+  return res.json({ msg: 'Déconnexion réussie.' });
+});
+
+// @route   GET api/auth/me
+// @desc    Récupérer l'utilisateur actuellement authentifié
+router.get('/me', auth, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select('username');
+    if (!user) {
+      return res.status(401).json({ msg: 'Utilisateur introuvable.' });
+    }
+
+    return res.json({
+      user: { id: user.id, username: user.username },
+    });
   } catch (err) {
     return next(err);
   }

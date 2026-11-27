@@ -15,23 +15,32 @@ import "./App.css";
 import Tasks from "./pages/Tasks";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import api from "./api";
 
 // Comment pourrait-on gérer les routes protégées qui nécessitent d'être connecté ?
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    !!localStorage.getItem("token")
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsAuthenticated(!!token);
+    const checkSession = async () => {
+      try {
+        await api.get("/auth/me");
+        setIsAuthenticated(true);
+      } catch (err) {
+        setIsAuthenticated(false);
+      }
+    };
+    checkSession();
   }, []);
 
   const handleLogin = () => setIsAuthenticated(true);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } finally {
+      setIsAuthenticated(false);
+    }
   };
 
   return (
