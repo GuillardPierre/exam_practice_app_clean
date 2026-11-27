@@ -75,7 +75,7 @@ h1 {
 
 .task-item.completed span {
   text-decoration: line-through;
-  color: #aaa;
+  color: #6c757d;
 }
 
 .task-item button {
@@ -148,4 +148,27 @@ main {
   display: flex;
   justify-content: center; /* centre horizontalement */
   align-items: center;     /* centre verticalement */
+}
+
+.error-message {
+  color: #b02a37;
+  background-color: #f8d7da;
+  border: 1px solid #f5c2c7;
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+.empty-message {
+  text-align: center;
+  color: #6c757d;
+  margin-top: 20px;
+}
+
+.task-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
 }
