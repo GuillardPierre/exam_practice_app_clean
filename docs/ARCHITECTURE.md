@@ -5,7 +5,7 @@
 Pour héberger une application composée d'un frontend React servi par Nginx, d'une API Node.js/Express et d'une base MongoDB, on peut partir sur un hébergeur européen comme Scaleway (ou AWS / GCP) :
 
 - Frontend + reverse proxy : conteneur Nginx sur Scaleway Serverless Containers (ou une instance dédiée derrière un Load Balancer).
-- Backend API : conteneur Node 20 (`backend/Dockerfile`) avec au moins 2 instances en production pour tolérer un redémarrage.
+- Backend API : conteneur Node 24 (`backend/Dockerfile`) avec au moins 2 instances en production pour tolérer un redémarrage.
 - Base de données : MongoDB Atlas ou Scaleway Managed MongoDB dans la même région (`fr-par` / `eu-west`) pour avoir des sauvegardes automatiques quotidiennes et un Replica Set managé.
 - Registre d'images : GitHub Container Registry (GHCR) ou le registre managé de l'hébergeur.
 
