@@ -7,30 +7,33 @@ import {
 } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-
-// La page n'a pas de style cohérent
-// => ajouter un fichier CSS pour gérer les styles de la page
-// => importer le fichier CSS dans le composant App
-import "./App.css";
 import Tasks from "./pages/Tasks";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import api from "./api";
+import api, { setUnauthorizedHandler } from "./api";
+import "./App.css";
 
-// Comment pourrait-on gérer les routes protégées qui nécessitent d'être connecté ?
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
+    setUnauthorizedHandler(() => setIsAuthenticated(false));
+
     const checkSession = async () => {
       try {
         await api.get("/auth/me");
         setIsAuthenticated(true);
       } catch (err) {
         setIsAuthenticated(false);
+      } finally {
+        setAuthLoading(false);
       }
     };
+
     checkSession();
+
+    return () => setUnauthorizedHandler(null);
   }, []);
 
   const handleLogin = () => setIsAuthenticated(true);
@@ -43,18 +46,52 @@ function App() {
     }
   };
 
+  const renderProtectedTasks = () => {
+    if (authLoading) {
+      return <p className="empty-message">Vérification de la session...</p>;
+    }
+    return isAuthenticated ? <Tasks /> : <Navigate to="/login" replace />;
+  };
+
   return (
     <Router>
       <div className="App">
-        <header className="header">
-          <Header isAuthenticated={isAuthenticated} onLogout={handleLogout} />
-        </header>
+        <Header isAuthenticated={isAuthenticated} onLogout={handleLogout} />
         <main>
           <Routes>
-            <Route path="/" element={<Navigate to="/login" />} />
-            <Route path="/login" element={<Login onLogin={handleLogin} />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/tasks" element={<Tasks />} />
+            <Route
+              path="/"
+              element={
+                <Navigate to={isAuthenticated ? "/tasks" : "/login"} replace />
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                isAuthenticated ? (
+                  <Navigate to="/tasks" replace />
+                ) : (
+                  <Login onLogin={handleLogin} />
+                )
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                isAuthenticated ? (
+                  <Navigate to="/tasks" replace />
+                ) : (
+                  <Register />
+                )
+              }
+            />
+            <Route path="/tasks" element={renderProtectedTasks()} />
+            <Route
+              path="*"
+              element={
+                <Navigate to={isAuthenticated ? "/tasks" : "/login"} replace />
+              }
+            />
           </Routes>
         </main>
         <Footer />
