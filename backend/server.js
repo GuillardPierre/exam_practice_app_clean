@@ -1,5 +1,19 @@
 // Point d'entrée du serveur backend
 require('dotenv').config();
+
+const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET'];
+const missingEnvVars = requiredEnvVars.filter((name) => !process.env[name]);
+
+if (missingEnvVars.length > 0) {
+  console.error(`Variables d'environnement manquantes : ${missingEnvVars.join(', ')}`);
+  process.exit(1);
+}
+
+if (process.env.JWT_SECRET.length < 32) {
+  console.error('JWT_SECRET doit contenir au moins 32 caractères.');
+  process.exit(1);
+}
+
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');

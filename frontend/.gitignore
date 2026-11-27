@@ -1,1 +1,15 @@
 node_modules/
+build/
+coverage/
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+.DS_Store
+build/
+coverage/
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+.DS_Store
