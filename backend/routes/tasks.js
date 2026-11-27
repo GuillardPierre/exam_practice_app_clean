@@ -6,20 +6,19 @@ const Task = require('../models/Task');
 const { sanitizeTaskInput, createTaskSchema, updateTaskSchema } = require('../validators/schemas');
 
 // @route   GET api/tasks
-// @desc    Get all user tasks
-router.get('/', auth, async (req, res) => {
+// @desc    Récupérer toutes les tâches de l'utilisateur connecté
+router.get('/', auth, async (req, res, next) => {
   try {
     const tasks = await Task.find({ user: req.user.id }).sort({ createdAt: -1 });
-    res.json(tasks);
+    return res.json(tasks);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    return next(err);
   }
 });
 
 // @route   POST api/tasks
-// @desc    Add a new task
-router.post('/', auth, async (req, res) => {
+// @desc    Créer une nouvelle tâche
+router.post('/', auth, async (req, res, next) => {
   const cleanedBody = sanitizeTaskInput(req.body);
   const { error, value } = createTaskSchema.validate(cleanedBody);
   if (error) {
@@ -34,18 +33,17 @@ router.post('/', auth, async (req, res) => {
     });
 
     const task = await newTask.save();
-    res.json(task);
+    return res.status(201).json(task);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    return next(err);
   }
 });
 
 // @route   PUT api/tasks/:id
 // @desc    Mettre à jour une tâche appartenant à l'utilisateur connecté
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, async (req, res, next) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    return res.status(400).json({ msg: 'Identifiant de tâche invalide' });
+    return res.status(400).json({ msg: 'Identifiant de tâche invalide.' });
   }
 
   const cleanedBody = sanitizeTaskInput(req.body);
@@ -69,21 +67,20 @@ router.put('/:id', auth, async (req, res) => {
     );
 
     if (!task) {
-      return res.status(404).json({ msg: 'Tâche introuvable' });
+      return res.status(404).json({ msg: 'Tâche introuvable.' });
     }
 
-    res.json(task);
+    return res.json(task);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ msg: 'Erreur serveur' });
+    return next(err);
   }
 });
 
 // @route   DELETE api/tasks/:id
 // @desc    Supprimer une tâche appartenant à l'utilisateur connecté
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, async (req, res, next) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-    return res.status(400).json({ msg: 'Identifiant de tâche invalide' });
+    return res.status(400).json({ msg: 'Identifiant de tâche invalide.' });
   }
 
   try {
@@ -93,13 +90,12 @@ router.delete('/:id', auth, async (req, res) => {
     });
 
     if (!deletedTask) {
-      return res.status(404).json({ msg: 'Tâche introuvable' });
+      return res.status(404).json({ msg: 'Tâche introuvable.' });
     }
 
-    res.json({ msg: 'Tâche supprimée' });
+    return res.json({ msg: 'Tâche supprimée.' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ msg: 'Erreur serveur' });
+    return next(err);
   }
 });
 

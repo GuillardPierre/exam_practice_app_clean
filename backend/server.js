@@ -1,5 +1,6 @@
 // Point d'entrée du serveur backend
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET'];
 const missingEnvVars = requiredEnvVars.filter((name) => !process.env[name]);
@@ -19,9 +20,6 @@ const cors = require('cors');
 const mongoSanitize = require('express-mongo-sanitize');
 const connectDB = require('./config/db');
 
-// Connexion à la base de données
-connectDB();
-
 const app = express();
 
 // Middleware
@@ -34,12 +32,42 @@ app.use(mongoSanitize());
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/tasks', require('./routes/tasks'));
 
-// Ce handler ne catch que les erreurs synchrones. Les erreurs dans les promesses ne sont pas gérées.
+// Gestion des routes inexistantes
+app.use((req, res) => {
+  res.status(404).json({ msg: 'Route introuvable.' });
+});
+
+// Gestionnaire d'erreurs global en JSON
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
+  if (err.type === 'entity.parse.failed' || (err instanceof SyntaxError && err.status === 400)) {
+    return res.status(400).json({ msg: 'Corps de requête JSON invalide.' });
+  }
+
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({ msg: 'Données invalides.' });
+  }
+
+  if (err.name === 'CastError') {
+    return res.status(400).json({ msg: 'Identifiant invalide.' });
+  }
+
+  if (err.code === 11000) {
+    return res.status(409).json({ msg: 'Cette ressource existe déjà.' });
+  }
+
+  console.error(err.stack || err.message);
+  return res.status(500).json({ msg: 'Erreur interne du serveur.' });
 });
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+async function startServer() {
+  await connectDB();
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = app;
