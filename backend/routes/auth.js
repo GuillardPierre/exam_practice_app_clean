@@ -3,16 +3,17 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { registerSchema, loginSchema } = require('../validators/schemas');
 
 // @route   POST api/auth/register
 // @desc    Register a new user
 router.post('/register', async (req, res) => {
-  const { username, password } = req.body;
-
-  // Un mot de passe vide ou un nom d'utilisateur trop court sont acceptés.
-  if (!username || !password) {
-    return res.status(400).json({ msg: 'Please enter all fields' });
+  const { error, value } = registerSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ msg: error.details[0].message });
   }
+
+  const { username, password } = value;
 
   try {
     let user = await User.findOne({ username });
@@ -22,7 +23,7 @@ router.post('/register', async (req, res) => {
 
     user = new User({ username, password });
 
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12);
     user.password = await bcrypt.hash(password, salt);
 
     await user.save();
@@ -41,11 +42,15 @@ router.post('/register', async (req, res) => {
 // @route   POST api/auth/login
 // @desc    Authenticate user & get token
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-  
+  const { error, value } = loginSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ msg: error.details[0].message });
+  }
+
+  const { username, password } = value;
+
   try {
-    // Le message d'erreur est trop générique et ne guide pas l'utilisateur.
-    let user = await User.findOne({ username });
+    const user = await User.findOne({ username }).select('+password');
     if (!user) {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }

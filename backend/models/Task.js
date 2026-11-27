@@ -9,9 +9,14 @@ const TaskSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
+    trim: true,
+    maxlength: 120,
   },
   description: {
     type: String,
+    trim: true,
+    maxlength: 1000,
+    default: '',
   },
   isCompleted: {
     type: Boolean,
@@ -22,5 +27,7 @@ const TaskSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+TaskSchema.index({ user: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Task', TaskSchema);

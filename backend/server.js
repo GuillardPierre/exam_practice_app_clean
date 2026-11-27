@@ -16,6 +16,7 @@ if (process.env.JWT_SECRET.length < 32) {
 
 const express = require('express');
 const cors = require('cors');
+const mongoSanitize = require('express-mongo-sanitize');
 const connectDB = require('./config/db');
 
 // Connexion à la base de données
@@ -25,7 +26,9 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
+// Empêche les injections d'opérateurs MongoDB ($gt, $ne...) dans les requêtes
+app.use(mongoSanitize());
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));

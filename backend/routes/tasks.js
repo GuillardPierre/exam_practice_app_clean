@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Task = require('../models/Task');
+const { sanitizeTaskInput, createTaskSchema, updateTaskSchema } = require('../validators/schemas');
 
 // @route   GET api/tasks
 // @desc    Get all user tasks
@@ -19,13 +20,16 @@ router.get('/', auth, async (req, res) => {
 // @route   POST api/tasks
 // @desc    Add a new task
 router.post('/', auth, async (req, res) => {
-  const { title, description } = req.body;
+  const cleanedBody = sanitizeTaskInput(req.body);
+  const { error, value } = createTaskSchema.validate(cleanedBody);
+  if (error) {
+    return res.status(400).json({ msg: error.details[0].message });
+  }
 
-  // Un utilisateur pourrait injecter du HTML ou du script dans la description.
   try {
     const newTask = new Task({
-      title,
-      description,
+      title: value.title,
+      description: value.description,
       user: req.user.id,
     });
 
@@ -44,7 +48,13 @@ router.put('/:id', auth, async (req, res) => {
     return res.status(400).json({ msg: 'Identifiant de tâche invalide' });
   }
 
-  const { title, description, isCompleted } = req.body;
+  const cleanedBody = sanitizeTaskInput(req.body);
+  const { error, value } = updateTaskSchema.validate(cleanedBody);
+  if (error) {
+    return res.status(400).json({ msg: error.details[0].message });
+  }
+
+  const { title, description, isCompleted } = value;
   const updatedFields = {};
   if (title !== undefined) updatedFields.title = title;
   if (description !== undefined) updatedFields.description = description;
